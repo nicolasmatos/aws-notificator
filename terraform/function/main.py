@@ -6,25 +6,35 @@ import requests
 load_dotenv()
 
 def lambda_handler(event, context):
-    message = event['Records'][0]['Sns']['Message']
+    print(event)
+    message = json.loads(event['Records'][0]['Sns']['Message'])
     notification_composer(message)
 
-
 def notification_composer(message):
-    account = json.loads(message)['account']
-    threshold = json.loads(message)['threshold']
-    from_number = json.loads(message)['from_number']
-    destination_number = json.loads(message)['destination_number']
-    discord = json.loads(message)['discord']
-    whatsapp = json.loads(message)['whatsapp']
-    discord_webhook_url = json.loads(message)['discord_webhook_url']
+    print(message)
+    account = os.environ['account']
+    threshold = os.environ['threshold']
+    from_number = os.environ['from_number']
+    destination_number = os.environ['destination_number']
+    discord = os.environ['discord']
+    whatsapp = os.environ['whatsapp']
+    discord_webhook_url = os.environ['discord_webhook_url']
     
     if discord == "true":
         url = discord_webhook_url
-        embed = {
-        "description": f"O seu gasto com a conta **{account}** da AWS passou de: **${threshold}** (dólares) 💰\n \n👀 Verifique sua conta agora mesmo: **https://us-east-1.console.aws.amazon.com/cost-management/home?region=us-east-1#/dashboard**",
-        "title": "🚨Atenção!🚨"
-        }
+        if(message["source"] == "aws.ec2"):
+            state = message["detail"]["state"]
+            instanceId = message["detail"]["instance-id"]
+            region = message["region"]
+            embed = {
+            "description": f"Instância **{instanceId}** está **${state}** na região **${region}**. \n \n👀 Verifique sua conta agora mesmo: **https://us-east-1.console.aws.amazon.com/cost-management/home?region=us-east-1#/dashboard**",
+            "title": "🚨Atenção!🚨"
+            }
+        else:
+            embed = {
+            "description": f"O seu gasto com a conta **{account}** da AWS passou de: **${threshold}** (dólares) 💰\n \n👀 Verifique sua conta agora mesmo: **https://us-east-1.console.aws.amazon.com/cost-management/home?region=us-east-1#/dashboard**",
+            "title": "🚨Atenção!🚨"
+            }
         data = {
             "username": "AWS Notificator",
             "embeds": [
@@ -39,7 +49,13 @@ def notification_composer(message):
     else:
         print("Discord não habilitado!")
     if whatsapp == "true":
-        message_body = f"🚨*Atenção!*🚨 \n O seu gasto com a conta *{account}* da AWS passou de: *${threshold}* (dólares) 💰 \n \n👀 Verifique sua conta agora mesmo: *https://us-east-1.console.aws.amazon.com/cost-management/home?region=us-east-1#/dashboard*"
+        if(message["source"] == "aws.ec2"):
+            state = message["detail"]["state"]
+            instanceId = message["detail"]["instance-id"]
+            region = message["region"]
+            message_body = f"🚨*Atenção!*🚨 \n Instância **{instanceId}** está **${state}** na região **${region}**. \n \n👀 Verifique sua conta agora mesmo: *https://us-east-1.console.aws.amazon.com/cost-management/home?region=us-east-1#/dashboard*"
+        else:
+            message_body = f"🚨*Atenção!*🚨 \n O seu gasto com a conta *{account}* da AWS passou de: *${threshold}* (dólares) 💰 \n \n👀 Verifique sua conta agora mesmo: *https://us-east-1.console.aws.amazon.com/cost-management/home?region=us-east-1#/dashboard*"
         send_whatsapp_message(message_body, from_number, destination_number)
     else:
         print("WhatsApp não habilitado!")

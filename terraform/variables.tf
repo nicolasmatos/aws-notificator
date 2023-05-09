@@ -1,21 +1,21 @@
 variable "destination_number" {
   # Numero do seu celular neste modelo: "whatsapp:+55***********"
-  type    = string
+  type = string
 }
 
 variable "from_number" {
   # Numero from do twilio
-  type    = string
+  type = string
 }
 
 variable "account" {
   # Nome da sua conta da AWS
-  type    = string
+  type = string
 }
 
 variable "threshold" {
   # Valor em USD que você deseja ser alertado
-  type    = string
+  type = string
 }
 
 variable "tags" {

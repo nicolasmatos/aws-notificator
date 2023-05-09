@@ -32,6 +32,13 @@ resource "aws_lambda_function" "aws-notificator-lambda" {
     variables = {
       ACCOUNT_SID = var.account_sid
       AUTH_TOKEN  = var.auth_token
+      account = var.account
+      threshold = var.threshold
+      discord = var.discord
+      whatsapp = var.whatsapp
+      from_number = var.from_number
+      destination_number = var.destination_number
+      discord_webhook_url = var.discord_webhook_url
     }
   }
 }
